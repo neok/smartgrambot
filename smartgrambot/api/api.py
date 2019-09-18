@@ -3,12 +3,15 @@ import requests
 import re
 import time
 import random
+import os
 
 
 class Api:
     is_logged = True
     base_url = "https://instagram.com/"
     login_endpoint = "https://www.instagram.com/accounts/login/ajax/"
+    csrf_token = ''
+    hash = ''
 
     def __init__(self):
         self.logger = logging.getLogger("smartgrambot")
@@ -18,7 +21,7 @@ class Api:
         self.logger.addHandler(handler)
         self.session = requests.Session()
 
-    def send_request(self, endpoint, body=None, additional_headers=None, random_wait=True):
+    def send_request(self, method, endpoint, body=None, additional_headers=None, random_wait=True, skip_login=False):
         """
         send http request
         :param type: str
@@ -26,11 +29,11 @@ class Api:
         :param body: str|None
         :param additional_headers: dict|None
         :param random_wait: bool
-        :return:
+        :rtype: requests.Response
         """
-        if not self.is_logged or self.login_endpoint != endpoint:
+        if not self.is_logged or self.login_endpoint != endpoint or not skip_login:
             self.logger.critical("User is not logged in, we cannot send requests. Please send login request login.")
-            return
+            return False
 
         self.logger.info(f"sending request to {endpoint}")
         self.session.headers.update({
@@ -50,32 +53,19 @@ class Api:
         if additional_headers:
             self.session.headers.update(additional_headers)
         if self.login_endpoint:
-            token = self.get_csrf_token()
-            self.session.headers.update({"X-CSRFToken": token})
+            # self.prepare_token_and_hash()
+            self.session.headers.update({"X-CSRFToken": self.csrf_token})
             """
                 wait some time before next response
             """
             if random_wait:
                 time.sleep(random.randint(1, 2) + 3)
-            response = self.session.post(endpoint, data=body, allow_redirects=True)
-            self.logger.info(f"Received status code {response.status_code}")
-            self.logger.info(f"Received text {response.text}")
-            self.logger.info(f"Received headers {response.headers}")
-            if response.status_code != 200:
-                self.logger.debug("Failed")
-                return
-            else:
-                self.logger.info("Logged successfully")
+            return self.session.request(method, endpoint, data=body, allow_redirects=True)
 
-            try:
-                self.logger.debug(response)
-                json_data = response.json()
+        return self.session.request(method, endpoint)
 
-            except Exception as err:
-                self.logger.debug(f"Something went wrong {err}")
+    def update_headers(self, headers):
+        self.session.headers.update(headers)
 
-    def get_csrf_token(self):
-        response = self.session.get(self.base_url)
-        token = re.search('(?<="csrf_token":")\w+', response.text).group(0)
-
-        return token
+    def update_cookies(self, cookies):
+        self.session.cookies.update(cookies)
