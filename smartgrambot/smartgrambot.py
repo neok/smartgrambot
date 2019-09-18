@@ -5,10 +5,11 @@ import logging
 import yaml
 import os
 import re
-from .api import Api
-from .storage import FileObjectStorage
+import signal
 
-import smartgrambot
+from api import Api
+from storage import FileObjectStorage
+
 
 
 class SmartGramBot:
@@ -30,6 +31,7 @@ class SmartGramBot:
         with open(os.path.dirname(os.path.abspath('config.yml')) + "/smartgrambot/config.yml", 'r') as ymlfile:
             self.config = yaml.load(ymlfile, Loader=yaml.FullLoader)
         self.api = Api()
+        self.logger.info('Started')
         self.storage = FileObjectStorage()
         self.login()
 
@@ -37,7 +39,11 @@ class SmartGramBot:
         if self.logged_in:
             return
         self.prepare_token_and_hash()
-        response = self.api.send_request(Api.login_endpoint, {"username": self.config['username'], "password": self.config['password']})
+        self.api.update_headers({"X-CSRFToken": self.csrf_token})
+        response = self.api.send_request("POST", Api.login_endpoint, {"username": self.config['username'], "password": self.config['password']})
+        self.logger.info(f"Received status code {response.status_code}")
+        self.logger.info(f"Received text {response.text}")
+        self.logger.info(f"Received headers {response.headers}")
 
         if response is False or (response and response.status_code != 200):
             self.logger.debug("Failed to login")
@@ -70,6 +76,13 @@ class SmartGramBot:
 
     def prepare_token_and_hash(self):
         response = self.api.send_request('GET', self.base_url, skip_login=True)
-        self.csrf_token = re.search('(?<="csrf_token":")\w+', response.text).group(0)
-        self.hash = re.search('(?<="rollout_hash":")\w+', response.text).group(0)
+        if response:
+            self.csrf_token = re.search('(?<="csrf_token":")\w+', response.text).group(0)
+            self.hash = re.search('(?<="rollout_hash":")\w+', response.text).group(0)
+        else:
+            self.logger.error('Cannot get data')
+            signal.signal(signal.SIGINT, self.clear)
+            signal.signal(signal.SIGTERM, self.clear)
 
+    def clear(self):
+        pass

@@ -31,9 +31,10 @@ class Api:
         :param random_wait: bool
         :rtype: requests.Response
         """
-        if not self.is_logged or self.login_endpoint != endpoint or not skip_login:
-            self.logger.critical("User is not logged in, we cannot send requests. Please send login request login.")
-            return False
+        if not skip_login:
+            if not self.is_logged or self.login_endpoint != endpoint:
+                self.logger.critical("User is not logged in, we cannot send requests. Please send login request login.")
+                return False
 
         self.logger.info(f"sending request to {endpoint}")
         self.session.headers.update({
@@ -53,8 +54,6 @@ class Api:
         if additional_headers:
             self.session.headers.update(additional_headers)
         if self.login_endpoint:
-            # self.prepare_token_and_hash()
-            self.session.headers.update({"X-CSRFToken": self.csrf_token})
             """
                 wait some time before next response
             """

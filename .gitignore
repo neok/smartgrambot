@@ -1,4 +1,5 @@
-smartgrambot/__pycache__
+smartgrambot/__pycache__/*
+config.txt
 .idea/
 dist/
 smartgrambot.egg-info/
