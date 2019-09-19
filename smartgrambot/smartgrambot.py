@@ -38,6 +38,15 @@ class SmartGramBot:
     def login(self):
         if self.logged_in:
             return
+        if self.storage.file_exists('config.txt'):
+            self.logger.info('Trying to load cookie file')
+            file = self.storage.get_file('config.txt')
+            if file:
+                self.api.update_cookies(file)
+                self.logger.info('Successfully loaded file and updated cookies')
+                return
+            else:
+                self.logger.warning('Cannot load file, something went wrong...')
         self.prepare_token_and_hash()
         self.api.update_headers({"X-CSRFToken": self.csrf_token})
         response = self.api.send_request("POST", Api.login_endpoint, {"username": self.config['username'], "password": self.config['password']})

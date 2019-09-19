@@ -9,7 +9,17 @@ class FileObjectStorage:
             with open(filename, 'wb') as output:
                 pickle.dump(object, output, pickle.HIGHEST_PROTOCOL)
         except Exception as e:
-            pass
+            return False
+
+    def file_exists(self, filename):
+
+        return os.path.isfile(filename)
 
     def get_file(self, filename):
-        pass
+
+        try:
+            with open(filename, 'rb') as fl:
+                return pickle.load(fl)
+
+        except Exception as e:
+            return False
