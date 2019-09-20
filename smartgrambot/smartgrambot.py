@@ -38,9 +38,9 @@ class SmartGramBot:
     def login(self):
         if self.logged_in:
             return
-        if self.storage.file_exists('config.txt'):
+        if self.storage.file_exists(self.config['cookie_file']):
             self.logger.info('Trying to load cookie file')
-            file = self.storage.get_file('config.txt')
+            file = self.storage.get_file(self.config['cookie_file'])
             if file:
                 self.api.update_cookies(file)
                 self.logger.info('Successfully loaded file and updated cookies')
