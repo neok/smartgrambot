@@ -3,3 +3,4 @@ config.txt
 .idea/
 dist/
 smartgrambot.egg-info/
+smartgrambot/api/__pycache__/
