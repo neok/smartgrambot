@@ -14,7 +14,7 @@ class Api:
     hash = ''
 
     def __init__(self):
-        self.logger = logging.getLogger("smartgrambot")
+        self.logger = logging.getLogger("smartgrambot__api")
         self.logger.setLevel(logging.DEBUG)
         handler = logging.StreamHandler()
         handler.setFormatter(logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s"))
