@@ -21,6 +21,7 @@ class SmartGramBot:
     csrf_token = ''
     cookies = dict()
     logged_in = False
+    auto_run = True
 
     def __init__(self):
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -33,20 +34,24 @@ class SmartGramBot:
         self.api = Api()
         self.logger.info('Started')
         self.storage = FileObjectStorage()
-        self.login()
+        self.tags = self.config['tags']
+        self.max_likes_per_day = self.config['max_likes_per_day']
+        if self.login():
+            self.run()
 
     def login(self):
         if self.logged_in:
-            return
+            return True
         if self.storage.file_exists(self.config['cookie_file']):
             self.logger.info('Trying to load cookie file')
             file = self.storage.get_file(self.config['cookie_file'])
             if file:
                 self.api.update_cookies(file)
                 self.logger.info('Successfully loaded file and updated cookies')
-                return
+                return True
             else:
                 self.logger.warning('Cannot load file, something went wrong...')
+                return False
         self.prepare_token_and_hash()
         self.api.update_headers({"X-CSRFToken": self.csrf_token})
         response = self.api.send_request("POST", Api.login_endpoint, {"username": self.config['username'], "password": self.config['password']})
@@ -81,6 +86,7 @@ class SmartGramBot:
         self.api.update_cookies(self.cookies)
         self.logger.info('Saving cookies')
         self.storage.save("config.txt", self.cookies)
+        return True
 
 
     def prepare_token_and_hash(self):
@@ -95,3 +101,23 @@ class SmartGramBot:
 
     def clear(self):
         pass
+
+    def run(self):
+        # media_files = []
+        while self.auto_run:
+            pass
+# check last time we liked the post
+# check how many likes per day we can do
+# check if this media was liked(from database)
+# if we can like, then proceed
+# get random tag
+# find medias by tag
+# get random media from list
+# and like
+# save media as liked
+# continue
+
+
+
+
+

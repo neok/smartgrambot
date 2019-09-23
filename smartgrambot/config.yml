@@ -3,3 +3,7 @@ password: password
 cookie_file: config.txt
 database:
   connection_string: sqlite:///config.db
+tags:
+  - testtag
+search_by_tags: true
+max_likes_per_day: 10
